@@ -11,5 +11,19 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
     while True:
         client_socket, client_address = server_socket.accept()
         print(f"Connection from {client_address[0]}:{client_address[1]}")
-        client_socket.sendall(b"Hello! You are connected to the server.\n")
-        client_socket.close()
+        client_socket.sendall(b"Hello! You are connected to the server. Type 'exit' to disconnect.\n")
+        try:
+            while True:
+                data = client_socket.recv(1024)
+                if not data:
+                    print(f"Client {client_address[0]}:{client_address[1]} disconnected.")
+                    break
+                message = data.decode('utf-8', errors='ignore').strip()
+                print(f"Received from client: {message}")
+                if message.lower() == 'exit':
+                    client_socket.sendall(b"Goodbye!\n")
+                    print(f"Client {client_address[0]}:{client_address[1]} requested disconnect.")
+                    break
+                client_socket.sendall(b"Echo: " + data + b"\n")
+        finally:
+            client_socket.close()
